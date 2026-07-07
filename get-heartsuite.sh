@@ -8,7 +8,7 @@
 #
 # Recommended (download + verify before run; see also curl -o && sha && bash):
 #
-#   curl -fsSL https://get.heartsuite.io -o get-heartsuite.sh
+#   curl -fsSL https://get.heartsecsuite.com -o get-heartsuite.sh
 #   less get-heartsuite.sh     # read it
 #   bash get-heartsuite.sh
 #
