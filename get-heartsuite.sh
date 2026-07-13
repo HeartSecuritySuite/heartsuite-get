@@ -6,15 +6,20 @@
 # Fetches the versioned install bundle from the official distribution site,
 # verifies its SHA-256 hash, then runs it.
 #
-# Recommended (download + verify before run; see also curl -o && sha && bash):
+# Recommended (download + verify before run):
 #
-#   curl -fsSL https://get.heartsecsuite.com -o get-heartsuite.sh
-#   less get-heartsuite.sh     # read it
-#   bash get-heartsuite.sh
+#   1. curl -fsSL https://get.heartsecsuite.com -o get-heartsuite.sh
+#   2. less get-heartsuite.sh     # inspect
+#   3. (optional) bash get-heartsuite.sh --help
+#   4. sudo bash get-heartsuite.sh
 #
-# Or direct on the bundle (after obtaining heartsuite-install.sh + .sha256):
-#   curl -o heartsuite-install.sh https://heartsecsuite.com/releases/v1.6.7/heartsuite-install.sh
-#   curl -o heartsuite-install.sh.sha256 https://heartsecsuite.com/releases/v1.6.7/heartsuite-install.sh.sha256
+# Or pin a release:
+#   sudo bash get-heartsuite.sh --version 1.6.7
+#   # or: HS_VERSION=1.6.7 sudo -E bash get-heartsuite.sh
+#
+# Or direct on the bundle (replace vX.Y.Z with the desired version):
+#   curl -o heartsuite-install.sh https://heartsecsuite.com/releases/vX.Y.Z/heartsuite-install.sh
+#   curl -o heartsuite-install.sh.sha256 https://heartsecsuite.com/releases/vX.Y.Z/heartsuite-install.sh.sha256
 #   sha256sum -c heartsuite-install.sh.sha256
 #   bash heartsuite-install.sh
 #
@@ -26,14 +31,13 @@
 set -Eeuo pipefail
 trap 'echo "[ERR] line $LINENO: $BASH_COMMAND" >&2' ERR
 
-VERSION="1.6.7"
+# Default stamped by build-test-bundle.py; override with --version or HS_VERSION.
+DEFAULT_VERSION="1.6.9"
+VERSION="${HS_VERSION:-$DEFAULT_VERSION}"
 
 # Bundles are hosted on the official HeartSuite website (your original domain).
 # Upload the built heartsuite-install.sh and .sha256 to the corresponding path.
-RELEASES_BASE="https://heartsecsuite.com/releases/v${VERSION}"
 BUNDLE="heartsuite-install.sh"
-BUNDLE_URL="${RELEASES_BASE}/${BUNDLE}"
-SHA256_URL="${RELEASES_BASE}/${BUNDLE}.sha256"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -42,6 +46,35 @@ info() { printf '[heartsuite] %s\n' "$*"; }
 
 need_cmd() {
     command -v "$1" >/dev/null 2>&1 || die "required command not found: $1"
+}
+
+usage() {
+    cat <<EOF
+HeartSuite bootstrap — download, verify (SHA-256), run the install bundle.
+
+Usage:
+  sudo bash get-heartsuite.sh [options]
+
+Options:
+  --version <X.Y.Z>   Install bundle version (default: ${DEFAULT_VERSION};
+                      env HS_VERSION also works)
+  --help, -h          Show this help and exit
+
+Recommended (inspect before run):
+  1. curl -fsSL https://get.heartsecsuite.com -o get-heartsuite.sh
+  2. less get-heartsuite.sh
+  3. bash get-heartsuite.sh --help
+  4. sudo bash get-heartsuite.sh
+
+Direct bundle path:
+  curl -o heartsuite-install.sh https://heartsecsuite.com/releases/vX.Y.Z/heartsuite-install.sh
+  curl -o heartsuite-install.sh.sha256 \\
+    https://heartsecsuite.com/releases/vX.Y.Z/heartsuite-install.sh.sha256
+  sha256sum -c heartsuite-install.sh.sha256
+  sudo bash heartsuite-install.sh
+
+Optional: HS_GPG_VERIFY=1 enables .sha256.asc check when published (DD-066: off by default).
+EOF
 }
 
 fetch() {
@@ -57,9 +90,38 @@ fetch() {
 
 # All the code below is wrapped in main() and invoked at the very end so a
 # truncated/partial download (e.g. curl | sh cut off early) does not execute
-# any logic. (Tailscale pattern for partial-download guard)
+# any logic (partial-download guard: body only runs after full parse).
 
 main() {
+# ── args (before network / root) ──────────────────────────────────────────────
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --help|-h)
+            usage
+            exit 0
+            ;;
+        --version)
+            [ $# -ge 2 ] || die "--version requires a value (e.g. --version 1.6.7)"
+            VERSION="${2#v}"
+            shift
+            ;;
+        --*)
+            die "unknown option: $1 (try --help)"
+            ;;
+        *)
+            die "unexpected argument: $1 (try --help)"
+            ;;
+    esac
+    shift
+done
+
+# Env wins only if --version not used after env; re-read: CLI already set VERSION.
+# If user set HS_VERSION and no --version, VERSION already from DEFAULT/HS at top.
+# Re-apply HS_VERSION only when still at default and env is set — already done.
+RELEASES_BASE="https://heartsecsuite.com/releases/v${VERSION}"
+BUNDLE_URL="${RELEASES_BASE}/${BUNDLE}"
+SHA256_URL="${RELEASES_BASE}/${BUNDLE}.sha256"
+
 # ── preflight ─────────────────────────────────────────────────────────────────
 
 need_cmd python3

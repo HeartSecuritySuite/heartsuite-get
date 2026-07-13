@@ -1,13 +1,37 @@
-# heartsuite-get (internal / private for now)
+# heartsuite-get
 
-This thin repository is currently **private**.
+Thin public distribution surface for the HeartSuite installer bootstrap.
 
-It is used internally for versioning the `get-heartsuite.sh` bootstrap script.
+Served at **https://get.heartsecsuite.com** via GitHub Pages (custom domain CNAME).
 
-**Public distribution is handled via website hosting:**
-- Bootstrap entrypoint: https://get.heartsuite.io
-- Bundles: https://heartsecsuite.com/releases/vX.Y.Z/heartsuite-install.sh (+ .sha256)
+## Contents
 
-See the main heartsuite repo (private) `dist/` directory and `dist/build-test-bundle.py` for build + upload instructions.
+| File | Purpose |
+|------|---------|
+| `get-heartsuite.sh` | Bootstrap script — downloads and verifies the install bundle |
+| `index.html` | Landing page with the one-liner install command |
+| `CNAME` | GitHub Pages custom domain (`get.heartsecsuite.com`) |
 
-Once approved, this repo may be made public (thin distribution surface only).
+Install bundles (`heartsuite-install.sh` + `.sha256`) are hosted separately at
+`https://heartsecsuite.com/releases/vX.Y.Z/`.
+
+## Release workflow
+
+1. Build a release in the main `heartsuite` repo: `python3 dist/build-test-bundle.py`
+2. The builder stamps `DEFAULT_VERSION` and copies `get-heartsuite.sh` here (sibling checkout)
+3. Upload bundles to `heartsecsuite.com/releases/v${VERSION}/`
+4. Commit and push this repo, then verify:
+
+```bash
+curl -fsSL https://get.heartsecsuite.com/get-heartsuite.sh | head -5
+```
+
+## GitHub Pages setup
+
+In **Settings → Pages** for this repo:
+
+- Source: branch `main`, folder `/ (root)`
+- Custom domain: `get.heartsecsuite.com` (DNS CNAME → `heartsecuritysuite.github.io`)
+- Enforce HTTPS once the certificate is issued
+
+This repo must be **public** for unauthenticated curl installs.
