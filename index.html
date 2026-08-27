@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Install HeartSuite</title>
+  <title>Install HeartSuite beta</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 4rem auto; padding: 0 1.5rem; color: #1a1a1a; }
     h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
@@ -13,12 +13,13 @@
   </style>
 </head>
 <body>
-  <h1>Install HeartSuite</h1>
-  <p>Run this in a terminal on your target machine (requires root):</p>
+  <h1>Install HeartSuite beta</h1>
+  <p>Public beta of HeartSuite 1.7.0. Debian 12 is the reference platform. Run this in a terminal on your target machine (requires root):</p>
   <pre>curl -fsSL https://get.heartsecsuite.com/get-heartsuite.sh | sudo bash</pre>
   <p>
-    The script downloads the installer bundle over HTTPS and verifies its
-    SHA-256 checksum before running anything.
+    The script downloads the installer bundle over HTTPS from
+    <code>/releases/v1.7.0-beta/</code> and verifies its SHA-256 checksum
+    before running anything. This is not the numbered 1.7.0 release.
   </p>
   <p>
     Prefer to inspect before running?

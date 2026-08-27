@@ -13,13 +13,15 @@ Served at **https://get.heartsecsuite.com** via GitHub Pages (custom domain CNAM
 | `CNAME` | GitHub Pages custom domain (`get.heartsecsuite.com`) |
 
 Install bundles (`heartsuite-install.sh` + `.sha256`) are hosted separately at
-`https://heartsecsuite.com/releases/vX.Y.Z/`.
+`https://heartsecsuite.com/releases/vX.Y.Z/`. The 1.7.0 public curl is the
+**beta** channel directory `https://heartsecsuite.com/releases/v1.7.0-beta/`
+(`VERSION` stays 1.7.0).
 
 ## Release workflow
 
 1. Build a release in the main `heartsuite` repo: `python3 dist/build-test-bundle.py`
 2. The builder stamps `DEFAULT_VERSION` and copies `get-heartsuite.sh` here (sibling checkout)
-3. Upload bundles to `heartsecsuite.com/releases/v${VERSION}/`
+3. Upload bundles to `heartsecsuite.com/releases/v1.7.0-beta/` (1.7.0 public curl) or `/releases/v${VERSION}/` for other numbers
 4. Commit and push this repo, then verify:
 
 ```bash

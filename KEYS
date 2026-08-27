@@ -1,0 +1,40 @@
+This file contains the OpenPGP key that signs HeartSuite install checksums
+(heartsuite-install.sh.sha256.asc). Apache/Debian maintainer model: the
+signer is a person, not a company-only key. The key moves with them.
+
+  gpg --import KEYS
+  gpg --verify heartsuite-install.sh.sha256.asc heartsuite-install.sh.sha256
+
+Primary fingerprint:  BD77B174DAE8B425040B46ACDE42D4B3154111BA
+Signing subkey:       3AD6FFB4E941BCF8BBE1EA26BBE3AFAA71D8E17D
+                      (Nitrokey 3, card 000F 15872471)
+Identity:             Ron Hessing <linux-love@posteo.net>
+Pinned in:            get-heartsuite.sh (HS_GPG_FINGERPRINT)
+
+To sign a release checksum (stick in, TTY, PIN / touch):
+
+  dist/sign-installer.sh heartsuite-install.sh.sha256
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEZpvHsBYJKwYBBAHaRw8BAQdAxHdhLGKoVTKvmYtDjifvWsKMqM1AQ56IT5uD
+TSUSJFW0I1JvbiBIZXNzaW5nIDxsaW51eC1sb3ZlQHBvc3Rlby5uZXQ+iJAEExYI
+ADgWIQS9d7F02ui0JQQLRqzeQtSzFUERugUCZpvHsAIbAwULCQgHAgYVCgkICwIE
+FgIDAQIeAQIXgAAKCRDeQtSzFUERutmjAQDXwV/dBRf+PAHAXj6BWfoCQKLGUgMC
+3LfjgbbNsmhoxQEA9SkuCDanD5OgG3IS8zKlYf+pZRexcNr4sB3W2ugLFgG4OARm
+m8ewEgorBgEEAZdVAQUBAQdA46a08zPUwErWHq281RSGwLSQwzGs1C0NVVVjxt57
+El0DAQgHiHgEGBYIACAWIQS9d7F02ui0JQQLRqzeQtSzFUERugUCZpvHsAIbDAAK
+CRDeQtSzFUERugMjAP9Tux2GYUEgD0cE5qli6WNzDdFjSRQE/6KUckdMih55UQD/
+XUGwE6v78cmezsDDz24DbSnUiMUQOm3w1F7auQuhdQC4MwRmm8kFFgkrBgEEAdpH
+DwEBB0Bwz1sZQh3InxP/GbD4UggYNpBc2XSF1RN9rHNNVEQ4Zoh4BBgWCgAgFiEE
+vXexdNrotCUEC0as3kLUsxVBEboFAmabyQUCGyAACgkQ3kLUsxVBEbqZKQEAgHR7
+RF7taK4CQs5v77d6modbUj+udu3Esmn5H+VByeIBALuDokj3EDKe+DPN2A+aQTs/
+OyYgK0EdiF4H0qSbWYUGuDMEZpv8JxYJKwYBBAHaRw8BAQdAL6h8hc8vNFS2HA9G
+ixe0cZgebbY1UWb06UGQ920KSCqI7gQYFggAIBYhBL13sXTa6LQlBAtGrN5C1LMV
+QRG6BQJmm/wnAhsCAIEJEN5C1LMVQRG6diAEGRYIAB0WIQQ61v+06UG8+Lvh6ia7
+46+qcdjhfQUCZpv8JwAKCRC746+qcdjhfWArAPwOe8530VmnkgIKwjXsgjob1rbU
+f6SsFjYdlu8BqQ6ohgEAguCP0lWIckD1wp3o64RUZqWYJGBtsoY/IQVQ+FF0vQlu
+dQD4n3MgWGzqwKP+dFh8w36T1BKtJ4VlzwQClXHCp8igXgEA3VM9WUIGnyRDq60j
+HWapBPFr19RYQIp9JT14z423ugE=
+=0Oql
+-----END PGP PUBLIC KEY BLOCK-----

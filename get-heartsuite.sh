@@ -17,27 +17,39 @@
 #   sudo bash get-heartsuite.sh --version 1.6.7
 #   # or: HS_VERSION=1.6.7 sudo -E bash get-heartsuite.sh
 #
-# Or direct on the bundle (replace vX.Y.Z with the desired version):
-#   curl -o heartsuite-install.sh https://heartsecsuite.com/releases/vX.Y.Z/heartsuite-install.sh
-#   curl -o heartsuite-install.sh.sha256 https://heartsecsuite.com/releases/vX.Y.Z/heartsuite-install.sh.sha256
+# Direct bundle (1.7.0 public curl is the beta channel directory; VERSION stays 1.7.0):
+#   curl -o heartsuite-install.sh https://heartsecsuite.com/releases/v1.7.0-beta/heartsuite-install.sh
+#   curl -o heartsuite-install.sh.sha256 https://heartsecsuite.com/releases/v1.7.0-beta/heartsuite-install.sh.sha256
 #   sha256sum -c heartsuite-install.sh.sha256
 #   bash heartsuite-install.sh
 #
+# Other numbered releases stay under /releases/vX.Y.Z/.
+#
 # GPG (when .sha256.asc published) is behind HS_GPG_VERIFY=1 (default: off).
-# This gates the verify path until signing keys + .asc actually ship (per DD-066
-# and SHA-256-only decision). Without a flag, clean machines would hard-fail.
-# Future: bundle supports --check / makeself inspection (documented in INSTALLER_CHANGES).
+# When the flag is on, verify is fail-closed and pinned to HS_GPG_FINGERPRINT
+# (DD-066: personal OpenPGP key on Nitrokey 3, Apache/Debian maintainer model).
 
 set -Eeuo pipefail
 trap 'echo "[ERR] line $LINENO: $BASH_COMMAND" >&2' ERR
 
 # Default stamped by build-test-bundle.py; override with --version or HS_VERSION.
-DEFAULT_VERSION="1.6.9"
+DEFAULT_VERSION="1.7.0"
 VERSION="${HS_VERSION:-$DEFAULT_VERSION}"
 
+# DD-105: public 1.7.0 curl lives under /releases/v1.7.0-beta/. VERSION stays 1.7.0.
+channel_dir() {
+    case "$1" in
+        1.7.0) printf '%s' 'v1.7.0-beta' ;;
+        *) printf 'v%s' "$1" ;;
+    esac
+}
+
 # Bundles are hosted on the official HeartSuite website (your original domain).
-# Upload the built heartsuite-install.sh and .sha256 to the corresponding path.
+# Upload the built heartsuite-install.sh, .sha256, and .sha256.asc (when signing).
 BUNDLE="heartsuite-install.sh"
+
+# Personal OpenPGP signing key (DD-066). Signing subkey on Nitrokey 3.
+HS_GPG_FINGERPRINT="BD77B174DAE8B425040B46ACDE42D4B3154111BA"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -46,6 +58,35 @@ info() { printf '[heartsuite] %s\n' "$*"; }
 
 need_cmd() {
     command -v "$1" >/dev/null 2>&1 || die "required command not found: $1"
+}
+
+write_pinned_pubkey() {
+    # $1 = dest path. Must match dist/KEYS armor (tests/test_installer_gpg.py).
+    cat > "$1" <<'EOF'
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEZpvHsBYJKwYBBAHaRw8BAQdAxHdhLGKoVTKvmYtDjifvWsKMqM1AQ56IT5uD
+TSUSJFW0I1JvbiBIZXNzaW5nIDxsaW51eC1sb3ZlQHBvc3Rlby5uZXQ+iJAEExYI
+ADgWIQS9d7F02ui0JQQLRqzeQtSzFUERugUCZpvHsAIbAwULCQgHAgYVCgkICwIE
+FgIDAQIeAQIXgAAKCRDeQtSzFUERutmjAQDXwV/dBRf+PAHAXj6BWfoCQKLGUgMC
+3LfjgbbNsmhoxQEA9SkuCDanD5OgG3IS8zKlYf+pZRexcNr4sB3W2ugLFgG4OARm
+m8ewEgorBgEEAZdVAQUBAQdA46a08zPUwErWHq281RSGwLSQwzGs1C0NVVVjxt57
+El0DAQgHiHgEGBYIACAWIQS9d7F02ui0JQQLRqzeQtSzFUERugUCZpvHsAIbDAAK
+CRDeQtSzFUERugMjAP9Tux2GYUEgD0cE5qli6WNzDdFjSRQE/6KUckdMih55UQD/
+XUGwE6v78cmezsDDz24DbSnUiMUQOm3w1F7auQuhdQC4MwRmm8kFFgkrBgEEAdpH
+DwEBB0Bwz1sZQh3InxP/GbD4UggYNpBc2XSF1RN9rHNNVEQ4Zoh4BBgWCgAgFiEE
+vXexdNrotCUEC0as3kLUsxVBEboFAmabyQUCGyAACgkQ3kLUsxVBEbqZKQEAgHR7
+RF7taK4CQs5v77d6modbUj+udu3Esmn5H+VByeIBALuDokj3EDKe+DPN2A+aQTs/
+OyYgK0EdiF4H0qSbWYUGuDMEZpv8JxYJKwYBBAHaRw8BAQdAL6h8hc8vNFS2HA9G
+ixe0cZgebbY1UWb06UGQ920KSCqI7gQYFggAIBYhBL13sXTa6LQlBAtGrN5C1LMV
+QRG6BQJmm/wnAhsCAIEJEN5C1LMVQRG6diAEGRYIAB0WIQQ61v+06UG8+Lvh6ia7
+46+qcdjhfQUCZpv8JwAKCRC746+qcdjhfWArAPwOe8530VmnkgIKwjXsgjob1rbU
+f6SsFjYdlu8BqQ6ohgEAguCP0lWIckD1wp3o64RUZqWYJGBtsoY/IQVQ+FF0vQlu
+dQD4n3MgWGzqwKP+dFh8w36T1BKtJ4VlzwQClXHCp8igXgEA3VM9WUIGnyRDq60j
+HWapBPFr19RYQIp9JT14z423ugE=
+=0Oql
+-----END PGP PUBLIC KEY BLOCK-----
+EOF
 }
 
 usage() {
@@ -66,14 +107,15 @@ Recommended (inspect before run):
   3. bash get-heartsuite.sh --help
   4. sudo bash get-heartsuite.sh
 
-Direct bundle path:
-  curl -o heartsuite-install.sh https://heartsecsuite.com/releases/vX.Y.Z/heartsuite-install.sh
+Direct bundle path (1.7.0 public curl: /releases/v1.7.0-beta/):
+  curl -o heartsuite-install.sh https://heartsecsuite.com/releases/v1.7.0-beta/heartsuite-install.sh
   curl -o heartsuite-install.sh.sha256 \\
-    https://heartsecsuite.com/releases/vX.Y.Z/heartsuite-install.sh.sha256
+    https://heartsecsuite.com/releases/v1.7.0-beta/heartsuite-install.sh.sha256
   sha256sum -c heartsuite-install.sh.sha256
   sudo bash heartsuite-install.sh
 
-Optional: HS_GPG_VERIFY=1 enables .sha256.asc check when published (DD-066: off by default).
+Optional: HS_GPG_VERIFY=1 verifies .sha256.asc against the pinned key
+(DD-066: off by default until .asc is published).
 EOF
 }
 
@@ -118,7 +160,7 @@ done
 # Env wins only if --version not used after env; re-read: CLI already set VERSION.
 # If user set HS_VERSION and no --version, VERSION already from DEFAULT/HS at top.
 # Re-apply HS_VERSION only when still at default and env is set — already done.
-RELEASES_BASE="https://heartsecsuite.com/releases/v${VERSION}"
+RELEASES_BASE="https://heartsecsuite.com/releases/$(channel_dir "$VERSION")"
 BUNDLE_URL="${RELEASES_BASE}/${BUNDLE}"
 SHA256_URL="${RELEASES_BASE}/${BUNDLE}.sha256"
 
@@ -139,7 +181,11 @@ trap 'rm -rf "$TMPDIR_HS"' EXIT INT TERM
 BUNDLE_PATH="${TMPDIR_HS}/${BUNDLE}"
 SHA256_PATH="${TMPDIR_HS}/${BUNDLE}.sha256"
 
-info "Downloading HeartSuite ${VERSION} …"
+if [ "$VERSION" = "1.7.0" ]; then
+    info "Downloading HeartSuite ${VERSION} beta …"
+else
+    info "Downloading HeartSuite ${VERSION} …"
+fi
 fetch "$BUNDLE_URL"  "$BUNDLE_PATH"
 fetch "$SHA256_URL"  "$SHA256_PATH"
 
@@ -156,18 +202,25 @@ printf '%s  %s\n' "$EXPECTED_HASH" "$BUNDLE_PATH" | sha256sum -c - >/dev/null \
 info "Checksum OK."
 
 # ── optional GPG signature verification (gated behind HS_GPG_VERIFY) ─────────
-# Gated until .asc + pinned key handling ship. On clean keyring, gpg --verify
-# would fail with "no public key" and die. Set HS_GPG_VERIFY=1 to enable.
+# Default off until .sha256.asc is published with the bundle. When on: fail
+# closed (missing .asc, missing gpg, bad sig, or wrong key all die).
 if [ "${HS_GPG_VERIFY:-0}" = "1" ]; then
+    need_cmd gpg
     ASC_URL="${SHA256_URL}.asc"
     ASC_PATH="${TMPDIR_HS}/${BUNDLE}.sha256.asc"
-    if fetch "$ASC_URL" "$ASC_PATH"; then
-        if command -v gpg >/dev/null 2>&1; then
-            gpg --verify "$ASC_PATH" "$SHA256_PATH" || die "GPG signature verification failed"
-        else
-            info "gpg not found — skipping signature verification (see release notes for manual GPG setup)"
-        fi
-    fi
+    fetch "$ASC_URL" "$ASC_PATH" || die "GPG signature missing at ${ASC_URL}"
+    GPGHOME="$(mktemp -d "${TMPDIR_HS}/gnupg.XXXXXX")"
+    chmod 700 "$GPGHOME"
+    write_pinned_pubkey "${GPGHOME}/pinned.asc"
+    GNUPGHOME="$GPGHOME" gpg --batch --quiet --import "${GPGHOME}/pinned.asc" \
+        || die "failed to import pinned signing key"
+    STATUS="$(GNUPGHOME="$GPGHOME" gpg --batch --status-fd 1 --verify "$ASC_PATH" "$SHA256_PATH" 2>/dev/null)" \
+        || die "GPG signature verification failed"
+    printf '%s\n' "$STATUS" | grep -q '^\[GNUPG:\] GOODSIG ' \
+        || die "GPG signature verification failed"
+    printf '%s\n' "$STATUS" | grep '^\[GNUPG:\] VALIDSIG ' | grep -q "$HS_GPG_FINGERPRINT" \
+        || die "GPG signature is not from the pinned key ${HS_GPG_FINGERPRINT}"
+    info "GPG signature OK."
 fi
 
 # ── run ───────────────────────────────────────────────────────────────────────
