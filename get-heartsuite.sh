@@ -17,13 +17,15 @@
 #   sudo bash get-heartsuite.sh --version 1.6.7
 #   # or: HS_VERSION=1.6.7 sudo -E bash get-heartsuite.sh
 #
-# Direct bundle (1.7.0 public curl is the beta channel directory; VERSION stays 1.7.0):
-#   curl -o heartsuite-install.sh https://heartsecsuite.com/releases/v1.7.0-beta/heartsuite-install.sh
-#   curl -o heartsuite-install.sh.sha256 https://heartsecsuite.com/releases/v1.7.0-beta/heartsuite-install.sh.sha256
+# Direct bundle (1.7.0 public curl is the beta GitHub Release; VERSION stays 1.7.0):
+#   curl -L -o heartsuite-install.sh \
+#     https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta/heartsuite-install.sh
+#   curl -L -o heartsuite-install.sh.sha256 \
+#     https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta/heartsuite-install.sh.sha256
 #   sha256sum -c heartsuite-install.sh.sha256
 #   bash heartsuite-install.sh
 #
-# Other numbered releases stay under /releases/vX.Y.Z/.
+# Other numbered releases stay under https://heartsecsuite.com/releases/vX.Y.Z/.
 #
 # GPG (when .sha256.asc published) is behind HS_GPG_VERIFY=1 (default: off).
 # When the flag is on, verify is fail-closed and pinned to HS_GPG_FINGERPRINT
@@ -36,11 +38,12 @@ trap 'echo "[ERR] line $LINENO: $BASH_COMMAND" >&2' ERR
 DEFAULT_VERSION="1.7.0"
 VERSION="${HS_VERSION:-$DEFAULT_VERSION}"
 
-# DD-105: public 1.7.0 curl lives under /releases/v1.7.0-beta/. VERSION stays 1.7.0.
-channel_dir() {
+# DD-105: public 1.7.0 curl is the beta channel. VERSION stays 1.7.0.
+# Bundle host is the heartsuite-get GitHub Release until Apache /releases/ is writable.
+releases_base() {
     case "$1" in
-        1.7.0) printf '%s' 'v1.7.0-beta' ;;
-        *) printf 'v%s' "$1" ;;
+        1.7.0) printf '%s' 'https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta' ;;
+        *) printf '%s' "https://heartsecsuite.com/releases/v${1}" ;;
     esac
 }
 
@@ -107,10 +110,11 @@ Recommended (inspect before run):
   3. bash get-heartsuite.sh --help
   4. sudo bash get-heartsuite.sh
 
-Direct bundle path (1.7.0 public curl: /releases/v1.7.0-beta/):
-  curl -o heartsuite-install.sh https://heartsecsuite.com/releases/v1.7.0-beta/heartsuite-install.sh
-  curl -o heartsuite-install.sh.sha256 \\
-    https://heartsecsuite.com/releases/v1.7.0-beta/heartsuite-install.sh.sha256
+Direct bundle path (1.7.0 public curl: GitHub Release v1.7.0-beta):
+  curl -L -o heartsuite-install.sh \\
+    https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta/heartsuite-install.sh
+  curl -L -o heartsuite-install.sh.sha256 \\
+    https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta/heartsuite-install.sh.sha256
   sha256sum -c heartsuite-install.sh.sha256
   sudo bash heartsuite-install.sh
 
@@ -160,7 +164,7 @@ done
 # Env wins only if --version not used after env; re-read: CLI already set VERSION.
 # If user set HS_VERSION and no --version, VERSION already from DEFAULT/HS at top.
 # Re-apply HS_VERSION only when still at default and env is set — already done.
-RELEASES_BASE="https://heartsecsuite.com/releases/$(channel_dir "$VERSION")"
+RELEASES_BASE="$(releases_base "$VERSION")"
 BUNDLE_URL="${RELEASES_BASE}/${BUNDLE}"
 SHA256_URL="${RELEASES_BASE}/${BUNDLE}.sha256"
 
