@@ -21,7 +21,8 @@ the **beta** GitHub Release `v1.7.0-beta` on this repo (`VERSION` stays 1.7.0).
 1. Build a release in the main `heartsuite` repo: `python3 dist/build-test-bundle.py`
 2. The builder stamps `DEFAULT_VERSION` and copies `get-heartsuite.sh` here (sibling checkout)
 3. Attach `heartsuite-install.sh`, `.sha256`, and `.sha256.asc` to GitHub Release `v1.7.0-beta` (1.7.0 public curl), or upload other numbers to `heartsecsuite.com/releases/v${VERSION}/`
-4. Commit and push this repo, then verify:
+4. Publishing or replacing that release, and every push to `main`, runs `.github/workflows/docs-kernel-pin.yml`. The job downloads `heartsuite-install.sh` from the release, reads `BUILD_MANIFEST.txt`, and fails when the Docsy pages name a different kernel build or vmlinuz hash. `.github/scripts/check_public_docs_kernel_pin.py` must match `tools/check_public_docs_kernel_pin.py` in the product repo. That repo is private, so Actions cannot check it out. A release-eligible `build-test-bundle.py` runs the product copy before it copies the bootstrap here. The check does not rescore CVEs.
+5. Commit and push this repo, then verify:
 
 ```bash
 curl -fsSL https://get.heartsecsuite.com/get-heartsuite.sh | head -5

@@ -1,0 +1,52 @@
+name: docs name the release kernel
+
+# Customers curl get.heartsecsuite.com, which downloads heartsuite-install.sh
+# from this repo's GitHub Release. A push of get-heartsuite.sh does not carry
+# the kernel. This job reads BUILD_MANIFEST.txt inside the release asset and
+# fails when the Docsy pages still name a different build counter or vmlinuz.
+#
+# The product repo is private, so this job cannot check that code out. The
+# checker is the byte copy at .github/scripts/check_public_docs_kernel_pin.py.
+# A release tag can predate that file, so a release event checks out main.
+
+on:
+  release:
+    types: [published, edited]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag whose heartsuite-install.sh to check
+        required: true
+        default: v1.7.0-beta
+
+permissions:
+  contents: read
+
+jobs:
+  docs-pin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checker
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'release' && github.event.repository.default_branch || github.sha }}
+
+      - name: docs
+        uses: actions/checkout@v5
+        with:
+          repository: HeartSecuritySuite/heartsuite-docs
+          path: docs
+
+      - name: installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag || 'v1.7.0-beta' }}
+        run: gh release download "$TAG" --repo "${{ github.repository }}" -p heartsuite-install.sh
+
+      - name: pages name this kernel
+        run: >
+          python3 .github/scripts/check_public_docs_kernel_pin.py
+          --install-sh heartsuite-install.sh
+          --docs docs
