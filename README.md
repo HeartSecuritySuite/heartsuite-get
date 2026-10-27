@@ -13,14 +13,16 @@ Served at **https://get.heartsecsuite.com** via GitHub Pages (custom domain CNAM
 | `CNAME` | GitHub Pages custom domain (`get.heartsecsuite.com`) |
 
 Install bundles (`heartsuite-install.sh` + `.sha256`) for numbered releases are
-hosted at `https://heartsecsuite.com/releases/vX.Y.Z/`. The 1.7.0 public curl is
-the **beta** GitHub Release `v1.7.0-beta` on this repo (`VERSION` stays 1.7.0).
+hosted at `https://heartsecsuite.com/releases/vX.Y.Z/`. The product line on
+heartsuite and core-secure is 2.0.0 (DD-115). This published bootstrap is still
+the **beta** GitHub Release `v1.7.0-beta` (`DEFAULT_VERSION` stays 1.7.0 until a
+pack is published). `https://heartsecsuite.com/releases/v2.0.0/` is not published.
 
 ## Release workflow
 
 1. Build a release in the main `heartsuite` repo: `python3 dist/build-test-bundle.py`
 2. The builder stamps `DEFAULT_VERSION` and copies `get-heartsuite.sh` here (sibling checkout)
-3. Attach `heartsuite-install.sh`, `.sha256`, and `.sha256.asc` to GitHub Release `v1.7.0-beta` (1.7.0 public curl), or upload other numbers to `heartsecsuite.com/releases/v${VERSION}/`
+3. Attach `heartsuite-install.sh`, `.sha256`, and `.sha256.asc` to GitHub Release `v1.7.0-beta` (1.7.0 public curl), or upload other numbers to `heartsecsuite.com/releases/v${VERSION}/`. A 2.0.0 pack is uploaded to heartsecsuite.com/releases/v2.0.0/ only after that directory exists. Do not republish this bootstrap with DEFAULT_VERSION=2.0.0 before then.
 4. Publishing or replacing that release, and every push to `main`, runs `.github/workflows/docs-kernel-pin.yml`. The job downloads `heartsuite-install.sh` from the release, reads `BUILD_MANIFEST.txt`, and fails when the Docsy pages name a different kernel build or vmlinuz hash. `.github/scripts/check_public_docs_kernel_pin.py` must match `tools/check_public_docs_kernel_pin.py` in the product repo. That repo is private, so Actions cannot check it out. A release-eligible `build-test-bundle.py` runs the product copy before it copies the bootstrap here. The check does not rescore CVEs.
 5. Commit and push this repo, then verify:
 
