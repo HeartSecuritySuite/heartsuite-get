@@ -4,7 +4,7 @@
 # HeartSuite installer bootstrap
 #
 # Fetches the versioned install bundle from the official distribution site,
-# verifies its SHA-256 hash, then runs it.
+# verifies its SHA-256 hash and the OpenPGP signature of that hash, then runs it.
 #
 # Recommended (download + verify before run):
 #
@@ -27,9 +27,9 @@
 #
 # Other numbered releases stay under https://heartsecsuite.com/releases/vX.Y.Z/.
 #
-# GPG (when .sha256.asc published) is behind HS_GPG_VERIFY=1 (default: off).
-# When the flag is on, verify is fail-closed and pinned to HS_GPG_FINGERPRINT
-# (DD-066: personal OpenPGP key on Nitrokey 3, Apache/Debian maintainer model).
+# GPG verification of heartsuite-install.sh.sha256.asc is on unless
+# HS_GPG_VERIFY=0. When on, verify is fail-closed and pinned to
+# HS_GPG_FINGERPRINT (DD-066: personal OpenPGP key on Nitrokey 3).
 
 set -Eeuo pipefail
 trap 'echo "[ERR] line $LINENO: $BASH_COMMAND" >&2' ERR
@@ -118,8 +118,8 @@ Direct bundle path (1.7.0 public curl: GitHub Release v1.7.0-beta):
   sha256sum -c heartsuite-install.sh.sha256
   sudo bash heartsuite-install.sh
 
-Optional: HS_GPG_VERIFY=1 verifies .sha256.asc against the pinned key
-(DD-066: off by default until .asc is published).
+Signature check is on unless HS_GPG_VERIFY=0. It verifies .sha256.asc
+against the pinned key and stops if gpg or the signature is missing.
 EOF
 }
 
@@ -205,10 +205,9 @@ printf '%s  %s\n' "$EXPECTED_HASH" "$BUNDLE_PATH" | sha256sum -c - >/dev/null \
 
 info "Checksum OK."
 
-# ── optional GPG signature verification (gated behind HS_GPG_VERIFY) ─────────
-# Default off until .sha256.asc is published with the bundle. When on: fail
-# closed (missing .asc, missing gpg, bad sig, or wrong key all die).
-if [ "${HS_GPG_VERIFY:-0}" = "1" ]; then
+# ── GPG signature verification (on unless HS_GPG_VERIFY=0) ───────────────────
+# Fail closed: missing .asc, missing gpg, bad sig, or wrong key all die.
+if [ "${HS_GPG_VERIFY:-1}" = "1" ]; then
     need_cmd gpg
     ASC_URL="${SHA256_URL}.asc"
     ASC_PATH="${TMPDIR_HS}/${BUNDLE}.sha256.asc"
