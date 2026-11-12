@@ -19,9 +19,9 @@
 #
 # Direct bundle (1.7.0 public curl is the beta GitHub Release; VERSION stays 1.7.0):
 #   curl -L -o heartsuite-install.sh \
-#     https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta/heartsuite-install.sh
+#     https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta.48/heartsuite-install.sh
 #   curl -L -o heartsuite-install.sh.sha256 \
-#     https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta/heartsuite-install.sh.sha256
+#     https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta.48/heartsuite-install.sh.sha256
 #   sha256sum -c heartsuite-install.sh.sha256
 #   bash heartsuite-install.sh
 #
@@ -42,7 +42,7 @@ VERSION="${HS_VERSION:-$DEFAULT_VERSION}"
 # Bundle host is the heartsuite-get GitHub Release until Apache /releases/ is writable.
 releases_base() {
     case "$1" in
-        1.7.0) printf '%s' 'https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta' ;;
+        1.7.0) printf '%s' 'https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta.48' ;;
         *) printf '%s' "https://heartsecsuite.com/releases/v${1}" ;;
     esac
 }
@@ -110,11 +110,11 @@ Recommended (inspect before run):
   3. bash get-heartsuite.sh --help
   4. sudo bash get-heartsuite.sh
 
-Direct bundle path (1.7.0 public curl: GitHub Release v1.7.0-beta):
+Direct bundle path (1.7.0 public curl: GitHub Release v1.7.0-beta.48):
   curl -L -o heartsuite-install.sh \\
-    https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta/heartsuite-install.sh
+    https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta.48/heartsuite-install.sh
   curl -L -o heartsuite-install.sh.sha256 \\
-    https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta/heartsuite-install.sh.sha256
+    https://github.com/HeartSecuritySuite/heartsuite-get/releases/download/v1.7.0-beta.48/heartsuite-install.sh.sha256
   sha256sum -c heartsuite-install.sh.sha256
   sudo bash heartsuite-install.sh
 
